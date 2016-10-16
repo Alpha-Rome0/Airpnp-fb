@@ -7,7 +7,6 @@ import com.google.android.gms.maps.model.Marker;
 import java.util.HashMap;
 
 public class MyApplication extends Application {
-
     public static HashMap<String, Marker> markerHashMap = new HashMap<>();
 }
 

@@ -23,17 +23,10 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -56,11 +49,12 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.maps.android.ui.IconGenerator;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
@@ -77,11 +71,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private IconGenerator iconFactory;
     private LocationManager m_LocationManager;
     private Location m_Location;
+    private DatabaseReference firebase;
 
     public static final double earth = 6372.8; // In kilometers
     private static final int REQUEST_CODE_AUTOCOMPLETE = 1;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 6;
-    private static final double MAX_DISTANCE=1.6;
+    private static final double MAX_DISTANCE = 1.6;
 
     /**
      * Receiver registered with this activity to get the response from FetchAddressIntentService.
@@ -96,12 +91,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected String mStateOutput;
 
     CardView searchCard;
-    CardView bubbleCard;
-
     TextView searchText;
-
-    private JSONObject tempJSONObject;
-    private JSONArray tempJSONArray;
 
     CoordinatorLayout cl;
 
@@ -115,6 +105,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+
+        firebase = FirebaseDatabase.getInstance().getReference();
+
 
         searchText = (TextView) findViewById(R.id.search_text);
         searchCard = (CardView) findViewById(R.id.search_card);
@@ -164,7 +157,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     }
-    
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -181,13 +174,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnMarkerClickListener(this);
         mMap.getUiSettings().setZoomControlsEnabled(false);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
-        updateLocation();
-        m_Location = getLocation();
-        LatLng latLng = new LatLng(m_Location.getLatitude(), m_Location.getLongitude());
-        CameraUpdate center = CameraUpdateFactory.newLatLngZoom(latLng, 15);
-        mMap.moveCamera(center);
         mMap.getUiSettings().setCompassEnabled(false);
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        getLocationPermission();
 
 
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
@@ -204,8 +193,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     startIntentService(mLocation);
 
                     for (Marker m : MyApplication.markerHashMap.values()) {
-                        LatLng l=m.getPosition();
-                        Object[] o={l,m};
+                        LatLng l = m.getPosition();
+                        Object[] o = {l, m};
                         new LongOperation().execute(o);
                     }
                     String addr = getAddress(mCenterLatLong.latitude, mCenterLatLong.longitude);
@@ -219,48 +208,85 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        fetchOwners();
-    }
-
-    public void fetchOwners() {
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://li367-204.members.linode.com/listowners";
-        JsonObjectRequest jsonObjectRequest1 = new JsonObjectRequest(Request.Method.GET, url, (String) null, new Response.Listener<JSONObject>() {
+        ValueEventListener mapListener = new ValueEventListener() {
             @Override
-            public void onResponse(JSONObject response)
-            {
-                try
-                {
-                    tempJSONArray = response.getJSONArray("data");
-                    for (int i = 0; i < tempJSONArray.length(); i++) {
-                        tempJSONObject = tempJSONArray.getJSONObject(i);
-                        double latitude = Double.parseDouble(tempJSONObject.getString("latitude"));
-                        double longitude = Double.parseDouble(tempJSONObject.getString("longitude"));
-                        LatLng latLng=new LatLng(latitude, longitude);
-                        String email=tempJSONObject.getString("email");
-                        String hourlyRate=String.valueOf(tempJSONObject.getInt("rate"));
-                        Marker marker=mMap.addMarker(new MarkerOptions()
-                                .position(latLng)
-                                .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon("$" + hourlyRate)))
-                                .anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV())
-                                .visible(false)
-                                .title(email)
-                        );
-                        MyApplication.markerHashMap.put(email,marker);
-                    }
-                } catch (JSONException e) {
-                    Toast.makeText(MapsActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot listing : dataSnapshot.getChildren()) {
+                    Log.d(TAG, listing.toString());
+                    double latitude = listing.child("latitude").getValue(Double.class);
+                    double longitude = listing.child("longitude").getValue(Double.class);
+                    LatLng latLng = new LatLng(latitude, longitude);
+                    String username = listing.getKey();
+                    String email = listing.child("email").getValue(String.class);
+                    String hourlyRate = listing.child("rate").getValue(Double.class).toString();
+                    Marker marker = mMap.addMarker(new MarkerOptions()
+                            .position(latLng)
+                            .icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon("$" + hourlyRate)))
+                            .anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV())
+                            .visible(true)
+                            .title(username)
+                    );
+                    MyApplication.markerHashMap.put(email, marker);
+                }
+                for (Marker m : MyApplication.markerHashMap.values()) {
+                    LatLng l = m.getPosition();
+                    Object[] o = {l, m};
+                    new LongOperation().execute(o);
                 }
             }
-        },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(MapsActivity.this, error.toString(), Toast.LENGTH_LONG).show();
-                    }
-                });
-        queue.add(jsonObjectRequest1);
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+                // ...
+            }
+        };
+        firebase.child("owners").addListenerForSingleValueEvent(mapListener);
     }
+
+    public void getLocation() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+            m_LocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            Criteria criteria = new Criteria();
+            String bestProvider = m_LocationManager.getBestProvider(criteria, true);
+            m_Location = m_LocationManager.getLastKnownLocation(bestProvider);
+            LatLng latLng = new LatLng(m_Location.getLatitude(), m_Location.getLongitude());
+            CameraUpdate center = CameraUpdateFactory.newLatLngZoom(latLng, 15);
+            mMap.moveCamera(center);
+        }
+    }
+
+    public void getLocationPermission() {
+        Log.d("!!!", "getting permissions");
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MapsActivity.this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+        getLocation();
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d("Map", "Permission granted");
+                    getLocation();
+                } else {
+                    Log.d("Map", "Permission denied");
+                }
+                return;
+            }
+        }
+    }
+
 
     @Override
     public void onConnected(Bundle connectionHint) {
@@ -363,8 +389,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onMarkerClick(Marker marker) {
 
         Intent intent = getIntent();
-        String email=intent.getStringExtra("user_email");
-        intent=new Intent(MapsActivity.this, ParkingDetailsActivity.class);
+        String email = intent.getStringExtra("user_email");
+        intent = new Intent(MapsActivity.this, ParkingDetailsActivity.class);
         intent.putExtra("user_email", email);
         intent.putExtra("owner_email", marker.getTitle());
         startActivity(intent);
@@ -529,63 +555,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return earth * c;
     }
 
-    public Location getLocation() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MapsActivity.this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-        m_LocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-        String bestProvider = m_LocationManager.getBestProvider(criteria, true);
-        Location location = m_LocationManager.getLastKnownLocation(bestProvider);
-        return location;
-    }
-
-    private void updateLocation() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-        } else {
-            ActivityCompat.requestPermissions(MapsActivity.this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d("Map", "Permission granted");
-                    updateLocation();
-                    m_Location = getLocation();
-                } else {
-                    Log.d("Map", "Permission denied");
-                }
-                return;
-            }
-        }
-    }
 
     private class LongOperation extends AsyncTask<Object[], Void, Object[]> {
 
         @Override
         protected Object[] doInBackground(Object[]... o) {
-            LatLng l=(LatLng)o[0][0];
-            Marker m=(Marker)o[0][1];
+            LatLng l = (LatLng) o[0][0];
+            Marker m = (Marker) o[0][1];
             double d = haversine(mCenterLatLong.latitude, mCenterLatLong.longitude, l.latitude, l.longitude);
-            Object[] result = {m,d};
+            Object[] result = {m, d};
             return result;
         }
 
         @Override
         protected void onPostExecute(Object[] result) {
-            double d=(Double)result[1];
-            Marker m=(Marker)result[0];
+            double d = (Double) result[1];
+            Marker m = (Marker) result[0];
             if (d < MAX_DISTANCE) m.setVisible(true);
             else m.setVisible(false);
         }
