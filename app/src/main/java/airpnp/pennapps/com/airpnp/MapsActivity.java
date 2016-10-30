@@ -11,7 +11,6 @@ import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
@@ -192,11 +191,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     startIntentService(mLocation);
 
-                    for (Marker m : MyApplication.markerHashMap.values()) {
-                        LatLng l = m.getPosition();
-                        Object[] o = {l, m};
-                        new LongOperation().execute(o);
-                    }
                     String addr = getAddress(mCenterLatLong.latitude, mCenterLatLong.longitude);
                     if (!addr.equals("")) {
                         searchText.setText(addr);
@@ -228,11 +222,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     );
                     MyApplication.markerHashMap.put(email, marker);
                 }
-                for (Marker m : MyApplication.markerHashMap.values()) {
-                    LatLng l = m.getPosition();
-                    Object[] o = {l, m};
-                    new LongOperation().execute(o);
-                }
             }
 
             @Override
@@ -242,7 +231,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // ...
             }
         };
-        firebase.child("owners").addListenerForSingleValueEvent(mapListener);
+        firebase.child("owners").addValueEventListener(mapListener);
     }
 
     public void getLocation() {
@@ -253,7 +242,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Criteria criteria = new Criteria();
             String bestProvider = m_LocationManager.getBestProvider(criteria, true);
             m_Location = m_LocationManager.getLastKnownLocation(bestProvider);
-            LatLng latLng = new LatLng(m_Location.getLatitude(), m_Location.getLongitude());
+            Intent intent = getIntent();
+            Double lat = Double.parseDouble(intent.getStringExtra("latitude"));
+            Double lng = Double.parseDouble(intent.getStringExtra("longitude"));
+            LatLng latLng = new LatLng(lat, lng);
             CameraUpdate center = CameraUpdateFactory.newLatLngZoom(latLng, 15);
             mMap.moveCamera(center);
         }
@@ -424,12 +416,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             mCityOutput = resultData.getString(AppUtils.LocationConstants.LOCATION_DATA_CITY);
             mStateOutput = resultData.getString(AppUtils.LocationConstants.LOCATION_DATA_STREET);
-
-//            if (resultCode == AppUtils.LocationConstants.SUCCESS_RESULT) {
-//;
-//            }
-
-
         }
 
     }
@@ -542,46 +528,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         return result.toString();
-    }
-
-    public static double haversine(double lat1, double lon1, double lat2, double lon2) {
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-        lat1 = Math.toRadians(lat1);
-        lat2 = Math.toRadians(lat2);
-
-        double a = Math.pow(Math.sin(dLat / 2), 2) + Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
-        double c = 2 * Math.asin(Math.sqrt(a));
-        return earth * c;
-    }
-
-
-    private class LongOperation extends AsyncTask<Object[], Void, Object[]> {
-
-        @Override
-        protected Object[] doInBackground(Object[]... o) {
-            LatLng l = (LatLng) o[0][0];
-            Marker m = (Marker) o[0][1];
-            double d = haversine(mCenterLatLong.latitude, mCenterLatLong.longitude, l.latitude, l.longitude);
-            Object[] result = {m, d};
-            return result;
-        }
-
-        @Override
-        protected void onPostExecute(Object[] result) {
-            double d = (Double) result[1];
-            Marker m = (Marker) result[0];
-            if (d < MAX_DISTANCE) m.setVisible(true);
-            else m.setVisible(false);
-        }
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-        }
     }
 }
 

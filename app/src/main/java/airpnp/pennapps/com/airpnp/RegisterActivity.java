@@ -62,7 +62,7 @@ public class RegisterActivity extends AppCompatActivity {
     private String ownerRemarks;
     private String ownerRates;
     private Switch ownerRegister;
-    private boolean isDoingOwnerRegistration;
+
     private TextInputLayout textWrapperComments;
     private TextInputLayout textWrapperRates;
 

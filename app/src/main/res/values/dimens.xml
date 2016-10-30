@@ -48,6 +48,8 @@
     <dimen name="font_12">10.0sp</dimen>
     <dimen name="keyboard_height">300dip</dimen>
     <dimen name="item_settings_bottommargin">8dp</dimen>
+    <dimen name="app_bar_height">180dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
 
 
 </resources>

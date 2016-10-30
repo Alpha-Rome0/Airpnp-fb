@@ -69,7 +69,8 @@ public class LoginActivity extends AppCompatActivity {
         String password=editText2.getText().toString();
 
 
-        Intent intent=new Intent(LoginActivity.this, MapsActivity.class);
+        //Intent intent=new Intent(LoginActivity.this, MapsActivity.class);
+        Intent intent=new Intent(LoginActivity.this, EventsActivity.class);
         intent.putExtra("user_email", email);
         startActivity(intent);
     }

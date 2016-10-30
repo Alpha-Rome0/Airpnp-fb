@@ -121,6 +121,7 @@ public class ParkingDetailsActivity extends AppCompatActivity {
         ValueEventListener mapListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(TAG, dataSnapshot.toString());
                 String ownerFirstName = dataSnapshot.child("firstname").getValue(String.class);
                 String ownerLastName = dataSnapshot.child("lastname").getValue(String.class);
                 String street = dataSnapshot.child("street").getValue(String.class);
@@ -150,7 +151,7 @@ public class ParkingDetailsActivity extends AppCompatActivity {
                 // ...
             }
         };
-        firebase.child("owners/"+ownerEmail).addListenerForSingleValueEvent(mapListener);
+        firebase.child("owners/"+ownerEmail).addValueEventListener(mapListener);
 
 
     }

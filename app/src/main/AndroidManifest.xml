@@ -49,7 +49,16 @@
             android:name=".OwnerActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.Owners" />
-        <activity android:name=".PaymentActivity"></activity>
+        <activity android:name=".PaymentActivity" />
+        <activity
+            android:name=".EventsActivity"
+            android:label="@string/title_activity_events"
+            android:parentActivityName=".LoginActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="airpnp.pennapps.com.airpnp.LoginActivity" />
+        </activity>
     </application>
 
 </manifest>
