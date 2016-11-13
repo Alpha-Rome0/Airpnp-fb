@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer-array name="ListDrawable">
+        <item>@drawable/ic_menu_compass</item>
+        <item>@drawable/ic_menu_directions</item>
+        <item>@drawable/ic_menu_share</item>
+        <item>@drawable/ic_menu_add</item>
+        <item>@drawable/ic_menu_start_conversation</item>
+        <item>@drawable/ic_menu_help</item>
+        <item>@drawable/ic_menu_preferences</item>
+    </integer-array>
+</resources>
