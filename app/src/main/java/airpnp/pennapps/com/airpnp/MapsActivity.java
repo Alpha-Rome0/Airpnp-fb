@@ -206,7 +206,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot listing : dataSnapshot.getChildren()) {
-                    Log.d(TAG, listing.toString());
+                    Log.d("!!!", listing.toString());
                     double latitude = listing.child("latitude").getValue(Double.class);
                     double longitude = listing.child("longitude").getValue(Double.class);
                     LatLng latLng = new LatLng(latitude, longitude);
@@ -243,8 +243,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             String bestProvider = m_LocationManager.getBestProvider(criteria, true);
             m_Location = m_LocationManager.getLastKnownLocation(bestProvider);
             Intent intent = getIntent();
-            Double lat = Double.parseDouble(intent.getStringExtra("latitude"));
-            Double lng = Double.parseDouble(intent.getStringExtra("longitude"));
+            Double lat = intent.getDoubleExtra("latitude",0);
+            Double lng = intent.getDoubleExtra("longitude",0);
             LatLng latLng = new LatLng(lat, lng);
             CameraUpdate center = CameraUpdateFactory.newLatLngZoom(latLng, 15);
             mMap.moveCamera(center);

@@ -5,14 +5,22 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class LoginActivity extends AppCompatActivity {
-
+    DatabaseReference firebase = FirebaseDatabase.getInstance().getReference();
     AutoCompleteTextView textView;
 
 
@@ -63,15 +71,35 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void loginAction(View view) {
-        EditText editText1=(EditText)findViewById(R.id.email);
-        EditText editText2=(EditText)findViewById(R.id.password);
-        final String email=editText1.getText().toString();
-        String password=editText2.getText().toString();
+        EditText editText1 = (EditText) findViewById(R.id.email);
+        EditText editText2 = (EditText) findViewById(R.id.password);
+        final String email = editText1.getText().toString();
+        String password = editText2.getText().toString();
 
+        if (password.equals("owner")) {
+            firebase.child("owners").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    if (snapshot.hasChild(email)) {
+                        Intent intent = new Intent(LoginActivity.this, OwnerActivity.class);
+                        MyApplication.userEmail=email;
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Username not found", Toast.LENGTH_LONG).show();
+                    }
+                }
 
-        //Intent intent=new Intent(LoginActivity.this, MapsActivity.class);
-        Intent intent=new Intent(LoginActivity.this, EventsActivity.class);
-        intent.putExtra("user_email", email);
-        startActivity(intent);
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    // Getting Post failed, log a message
+                    Log.w("!!!", "loadPost:onCancelled", databaseError.toException());
+                }
+            });
+        } else {
+            Intent intent = new Intent(LoginActivity.this, EventsActivity.class);
+            MyApplication.userEmail=email;
+            startActivity(intent);
+        }
+
     }
 }

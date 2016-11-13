@@ -17,10 +17,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="For Owners"
+        android:text=""
         android:textColor="#fff"
         android:textSize="60sp"
         android:layout_gravity="center_horizontal" />
+
+    <TextView
+        android:text="Warning: Driver has not confirmed this parking spot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#fff"
+        android:textSize="15sp"
+        android:id="@+id/confirm_text" />
+
+    <ToggleButton
+        android:text="ToggleButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/toggleButton"
+        android:textOff="Unconfirmed"
+        android:textOn="Confirmed"
+        />
 
     <TextView
         android:layout_width="match_parent"

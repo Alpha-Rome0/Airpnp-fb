@@ -28,6 +28,8 @@ import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
 
+import static android.widget.Toast.makeText;
+
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
@@ -115,21 +117,24 @@ public class EventsFragment extends Fragment {
                     if (listitems.size() > 0 & MyRecyclerView != null) {
                         MyRecyclerView.setAdapter(new MyAdapter(listitems));
                     }
+                    ((EventsActivity)getActivity()).getPleaseWait().dismiss();
                 }catch (Exception e){
                     Log.e("!!!",e.toString());
+                    ((EventsActivity)getActivity()).getPleaseWait().dismiss();
                 }
             }
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse){
                 if (errorResponse != null) {
                     Log.e("!!!", errorResponse.toString());
-                    Toast toast = Toast.makeText(getContext(), errorResponse.toString(), Toast.LENGTH_LONG);
+                    Toast toast = makeText(getContext(), errorResponse.toString(), Toast.LENGTH_LONG);
                     toast.show();
                 }
                 else{
-                    Toast toast = Toast.makeText(getContext(), "null error response", Toast.LENGTH_LONG);
+                    Toast toast = makeText(getContext(), "null error response", Toast.LENGTH_LONG);
                     toast.show();
                 }
+                ((EventsActivity)getActivity()).getPleaseWait().dismiss();
 
             }
 
@@ -175,34 +180,53 @@ public class EventsFragment extends Fragment {
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    ((EventsActivity)getActivity()).getPleaseWait().show();
                     Log.d("!!!", "onClick " + getLayoutPosition());
                     final Event event = listitems.get(getLayoutPosition());
-                    String venueID = event.venudID;
-                    EventbriteRestClient.builder
-                            .appendPath("venues")
-                            .appendPath(venueID);
-                    RequestParams params=new RequestParams();
-                    params.put("token",getString(R.string.eventbrite_token));
-                    EventbriteRestClient.get(params, new JsonHttpResponseHandler() {
-                        @Override
-                        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                            try {
-                                String lat = response.getString("latitude");
-                                String lng = response.getString("longitude");
-                                Intent intent = new Intent(getContext(), MapsActivity.class);
-                                intent.putExtra("latitude", lat);
-                                intent.putExtra("longitude", lng);
-                                startActivity(intent);
-                            } catch (Exception e) {
-                                Log.e("!!!", event.toString());
+                    if (event.lat != null && event.lng != null){
+                        Intent intent = new Intent(getContext(), MapsActivity.class);
+                        intent.putExtra("latitude", event.lat);
+                        intent.putExtra("longitude", event.lng);
+                        startActivity(intent);
+                        ((EventsActivity) getActivity()).getPleaseWait().dismiss();
+                    }
+                    else {
+                        String venueID = event.venudID;
+                        EventbriteRestClient.builder
+                                .appendPath("venues")
+                                .appendPath(venueID);
+                        RequestParams params = new RequestParams();
+                        params.put("token", getString(R.string.eventbrite_token));
+                        EventbriteRestClient.get(params, new JsonHttpResponseHandler() {
+                            @Override
+                            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                                try {
+                                    event.lat = response.getDouble("latitude");
+                                    event.lng = response.getDouble("longitude");
+                                    Intent intent = new Intent(getContext(), MapsActivity.class);
+                                    intent.putExtra("latitude", event.lat);
+                                    intent.putExtra("longitude", event.lng);
+                                    startActivity(intent);
+                                    ((EventsActivity) getActivity()).getPleaseWait().dismiss();
+                                } catch (Exception e) {
+                                    Log.e("!!!", e.toString());
+                                    ((EventsActivity) getActivity()).getPleaseWait().dismiss();
+                                }
                             }
-                        }
 
-                        @Override
-                        public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                            Log.e("!!!", errorResponse.toString());
-                        }
-                    });
+                            @Override
+                            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                                if (errorResponse != null) Log.e("!!!", errorResponse.toString());
+                                else {
+                                    Toast toast = Toast.makeText(getContext(), "error connecting to server", Toast.LENGTH_LONG);
+                                    toast.show();
+
+                                }
+
+                                ((EventsActivity) getActivity()).getPleaseWait().dismiss();
+                            }
+                        });
+                    }
                 }
             });
         }

@@ -1,20 +1,25 @@
 package airpnp.pennapps.com.airpnp;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
@@ -22,28 +27,31 @@ import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import cz.msebera.android.httpclient.Header;
+
 
 public class ParkingDetailsActivity extends AppCompatActivity {
 
-    private JSONObject tempJSONObject;
-    private JSONArray tempJSONArray;
+    ToggleButton toggle;
+    TextView confirmText;
 
     Button arrivalStartDateBtn;
     Button arrivalStartTimeBtn;
     Button arrivalEndDateBtn;
     Button arrivalEndTimeBtn;
 
-    private String phone;
-    private Button book;
+    Boolean hostConfirm;
+    Boolean clientConfirm;
 
-    private double hourlyRate,latitude,longitude;
+    private String phone;
+
+    private double hourlyRate, latitude, longitude;
 
     public Calendar startDate;
     public Calendar endDate;
@@ -52,11 +60,6 @@ public class ParkingDetailsActivity extends AppCompatActivity {
 
     private DatabaseReference firebase;
 
-    private String userCustomerId;
-    private String ownerCustomerId;
-    private String userAccountId;
-    private String ownerAccountId;
-    private String userEmail;
     private String ownerEmail;
     private static String TAG = "DETAILS";
 
@@ -64,8 +67,7 @@ public class ParkingDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parking_details);
-        userEmail=getIntent().getStringExtra("user_email");
-        ownerEmail=getIntent().getStringExtra("owner_email");
+        ownerEmail = getIntent().getStringExtra("owner_email");
 
         firebase = FirebaseDatabase.getInstance().getReference();
 
@@ -73,18 +75,24 @@ public class ParkingDetailsActivity extends AppCompatActivity {
         startDate = Calendar.getInstance();
         endDate = Calendar.getInstance();
 
-        userEmail = getIntent().getStringExtra("user_email");
-
         SimpleDateFormat sdfDateFormatter = new SimpleDateFormat("MMM dd, yyyy");
         SimpleDateFormat sdfTimeFormatter = new SimpleDateFormat("h:mm a");
 
-        book = (Button) findViewById(R.id.btn_book);
-        book.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                bookParking(v);
+        confirmText = (TextView) findViewById(R.id.parking_confirm_text);
+
+        toggle = (ToggleButton) findViewById(R.id.toggleButton_parking);
+        toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    firebase.child("owners").child(ownerEmail).child("clientConfirm").setValue(true);
+                    bookParking();
+                } else {
+                    firebase.child("owners").child(ownerEmail).child("clientConfirm").setValue(false);
+                }
             }
         });
+
+
         arrivalStartDateBtn = (Button) findViewById(R.id.btn_start_date);
         arrivalStartDateBtn.setText(sdfDateFormatter.format(startDate.getTime()));
         arrivalStartDateBtn.setOnClickListener(new View.OnClickListener() {
@@ -143,7 +151,24 @@ public class ParkingDetailsActivity extends AppCompatActivity {
                 textView4.setText("Remarks: No Minivans please");
                 textView5.setText(street);
                 textView6.setText(city);
+
+                hostConfirm = dataSnapshot.child("hostConfirm").getValue(Boolean.class);
+                clientConfirm = dataSnapshot.child("clientConfirm").getValue(Boolean.class);
+                if (hostConfirm && clientConfirm) {
+                    confirmText.setText("You and the lot owner have confirmed this parking location. You are good to go!");
+                    confirmText.setTextColor(Color.parseColor("#117A65"));
+                    toggle.setChecked(true);
+                    Intent intent=new Intent();
+                    intent.putExtra("hours",hours);
+                } else if (clientConfirm) {
+                    confirmText.setText("Warning: Owner has not confirmed this parking spot, do not leave your car");
+                    confirmText.setTextColor(Color.RED);
+                } else {
+                    confirmText.setText("You have not confirmed this parking spot.");
+                    confirmText.setTextColor(Color.RED);
                 }
+            }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 // Getting Post failed, log a message
@@ -151,7 +176,7 @@ public class ParkingDetailsActivity extends AppCompatActivity {
                 // ...
             }
         };
-        firebase.child("owners/"+ownerEmail).addValueEventListener(mapListener);
+        firebase.child("owners/" + ownerEmail).addValueEventListener(mapListener);
 
 
     }
@@ -228,25 +253,25 @@ public class ParkingDetailsActivity extends AppCompatActivity {
         tpd.show(getFragmentManager(), "Timepickerdialog");
     }
 
-    public void bookParking(View view) {
-        Uri.Builder builder = new Uri.Builder();
-        builder.scheme("https")
-                .authority("rest.nexmo.com")
-                .appendPath("sms")
-                .appendPath("json")
-                .appendQueryParameter("api_key", getString(R.string.nexmo_id))
-                .appendQueryParameter("api_secret", getString(R.string.nexmo_secret))
-                .appendQueryParameter("from", "12675097486")
-                .appendQueryParameter("to", phone)
-                .appendQueryParameter("text", "Hi! This is AirPnP notifying you that " + userEmail + " has booked your parking spot!");
-        String url = builder.build().toString();
-        Log.d("!!!", url);
+    public void getDirections(View view) {
         Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
                 Uri.parse("http://maps.google.com/maps?daddr=" + latitude + "," + longitude));
         startActivity(intent);
+    }
 
-        String ownerEmail = getIntent().getStringExtra("owner_email");
-
+    public void bookParking() {
+        RequestParams params = new RequestParams();
+        params.put("api_key", getString(R.string.nexmo_id));
+        params.put("api_secret", getString(R.string.nexmo_secret));
+        params.put("from", "12675097486");
+        params.put("to", phone);
+        params.put("text", "Hi! This is AirPnP notifying you that " + MyApplication.userEmail + " has booked your parking spot!");
+        NexmoRestClient.post(params,new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                Log.d("!!!",response.toString());
+            }
+        });
         String startTime = arrivalStartTimeBtn.getText().toString();
         String endTime = arrivalEndTimeBtn.getText().toString();
         SimpleDateFormat displayFormat = new SimpleDateFormat("HH:mm");
@@ -273,14 +298,11 @@ public class ParkingDetailsActivity extends AppCompatActivity {
             DateTime dateTime2 = new DateTime(endYear, endMonth, endDay, endHour, endMinute, 0);
             Interval interval = new Interval(dateTime1, dateTime2);
             Duration duration = interval.toDuration();
-            hours=duration.getStandardHours();
-            long hours = duration.getStandardHours();
+            hours = duration.getStandardHours();
         } catch (Exception e) {
             Toast.makeText(ParkingDetailsActivity.this, e.toString(), Toast.LENGTH_LONG).show();
         }
-        finish();
     }
-
 
 
 }

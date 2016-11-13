@@ -1,5 +1,6 @@
 package airpnp.pennapps.com.airpnp;
 
+import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -11,10 +12,17 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
 public class EventsActivity extends AppCompatActivity {
+    private ProgressDialog pleaseWait;
+
+    public ProgressDialog getPleaseWait() {
+        return pleaseWait;
+    }
+
     public LatLng getLatLng() {
         return latLng;
     }
@@ -38,6 +46,8 @@ public class EventsActivity extends AppCompatActivity {
 
 
 
+
+
     }
     @Override
     public void onAttachFragment(Fragment fragment){
@@ -52,6 +62,8 @@ public class EventsActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(EventsActivity.this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
+
+        pleaseWait=ProgressDialog.show(this,"Please wait","Fetching data...",true,false);
         getLocation();
 
     }
@@ -62,10 +74,17 @@ public class EventsActivity extends AppCompatActivity {
             m_LocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
             Criteria criteria = new Criteria();
             String bestProvider = m_LocationManager.getBestProvider(criteria, true);
-            m_Location = m_LocationManager.getLastKnownLocation(bestProvider);
-
-            latLng = new LatLng(m_Location.getLatitude(), m_Location.getLongitude());
-            ((EventsFragment)fragment).getEventList();
+            if (m_Location==null)m_Location = m_LocationManager.getLastKnownLocation(bestProvider);
+            if (m_Location != null) {
+                latLng = new LatLng(m_Location.getLatitude(), m_Location.getLongitude());
+                if (((EventsFragment) fragment).listitems.isEmpty()){
+                    ((EventsFragment) fragment).getEventList();
+                }
+            }
+            else{
+                Toast toast = Toast.makeText(EventsActivity.this,"Problem getting GPS",Toast.LENGTH_LONG);
+                toast.show();
+            }
 
         }
     }

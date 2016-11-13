@@ -7,20 +7,23 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 /**
- * Created by Andy on 10/29/2016.
+ * Created by Andy on 11/12/2016.
  */
 
-public class EventbriteRestClient {
+public class NexmoRestClient {
     public static Uri.Builder builder = new Uri.Builder()
             .scheme("https")
-            .authority("www.eventbriteapi.com")
-            .appendPath("v3");
+            .authority("rest.nexmo.com")
+            .appendPath("sms")
+            .appendPath("json")
+            .appendQueryParameter("api_key", MyApplication.resources.getString(R.string.nexmo_id))
+            .appendQueryParameter("api_secret", MyApplication.resources.getString(R.string.nexmo_secret))
+            .appendQueryParameter("from", "12675097486");
 
     private static AsyncHttpClient client = new AsyncHttpClient();
 
     public static void get(RequestParams params, AsyncHttpResponseHandler responseHandler) {
         client.get(getAbsoluteUrl(), params, responseHandler);
-
     }
 
     public static void post(RequestParams params, AsyncHttpResponseHandler responseHandler) {
@@ -32,9 +35,12 @@ public class EventbriteRestClient {
         String url=builder.build().toString();
         builder = new Uri.Builder()
                 .scheme("https")
-                .authority("www.eventbriteapi.com")
-                .appendPath("v3");
-        client = new AsyncHttpClient();
+                .authority("rest.nexmo.com")
+                .appendPath("sms")
+                .appendPath("json")
+                .appendQueryParameter("api_key", MyApplication.resources.getString(R.string.nexmo_id))
+                .appendQueryParameter("api_secret", MyApplication.resources.getString(R.string.nexmo_secret))
+                .appendQueryParameter("from", "12675097486");
         return url;
     }
 }

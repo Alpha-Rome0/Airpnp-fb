@@ -1,10 +1,8 @@
 package airpnp.pennapps.com.airpnp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -14,22 +12,13 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.reimaginebanking.api.nessieandroidsdk.models.Transfer;
-import com.reimaginebanking.api.nessieandroidsdk.requestclients.NessieClient;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 public class PaymentActivity extends AppCompatActivity {
 
-    private String ownerAccountId;
-    private String userAccountId;
     private String userEmail;
     private String ownerEmail;
     private String firstName;
@@ -49,23 +38,11 @@ public class PaymentActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment);
-        ownerAccountId=getIntent().getStringExtra("ownerAccountId");
-        userAccountId=getIntent().getStringExtra("userAccountId");
         userEmail=getIntent().getStringExtra("userEmail");
         ownerEmail=getIntent().getStringExtra("ownerEmail");
-        hours=String.valueOf(getIntent().getIntExtra("hours", 0));
+        hours=String.valueOf(getIntent().getLongExtra("hours", 0));
         textView = (TextView)findViewById(R.id.textView1);
-        /*Button button=(Button)findViewById(R.id.btn_book);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MyApplication.markerHashMap.get(ownerEmail).remove();
-                MyApplication.markerHashMap.remove(ownerEmail);
-            }
-        });*/
         getName(userEmail);
-        //getAddress(ownerEmail);
-        //setMessageText();
     }
 
     public void getName(String userEmail)
