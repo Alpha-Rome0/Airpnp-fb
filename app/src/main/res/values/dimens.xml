@@ -51,5 +51,10 @@
     <dimen name="app_bar_height">180dp</dimen>
     <dimen name="text_margin">16dp</dimen>
 
+    <!-- Sliding Menu -->
+    <dimen name="icon_left_margin">16dp</dimen>
+    <dimen name="text_left_margin">72dp</dimen>
+    <dimen name="profile_padding">30dp</dimen>
+
 
 </resources>

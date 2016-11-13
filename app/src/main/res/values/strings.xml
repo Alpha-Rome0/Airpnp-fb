@@ -23,6 +23,25 @@
 
     <string name="action_settings">Settings</string>
 
+    <string name="reference">About</string>
+
+
+    <!-- #################################################3 -->
+    <string name="user_name">Luoyin Feng</string>
+    <!-- #################################################3  -->
+
+
+
+    <string-array name="list_item_array">
+        <item>PAYMENT</item>
+        <item>MY TRIP</item>
+        <item>INVITATION</item>
+        <item>PROMOTION</item>
+        <item>NOTIFICATION</item>
+        <item>HELP</item>
+        <item>SETTING</item>
+    </string-array>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

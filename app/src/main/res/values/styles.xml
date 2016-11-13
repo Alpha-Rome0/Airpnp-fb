@@ -62,6 +62,20 @@
         <item name="colorControlActivated">@color/colorAccent</item>
         <item name="colorControlHighlight">#fff</item>
     </style>
+    <!-- User Profile Management theme -->
+    <style name="Name">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:layout_marginStart">90dp</item>
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+
+    <style name="ListText">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:layout_marginStart">77dp</item>
+    </style>
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
