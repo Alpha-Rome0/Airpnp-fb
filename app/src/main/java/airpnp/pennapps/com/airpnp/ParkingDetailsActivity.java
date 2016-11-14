@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.google.firebase.database.DataSnapshot;
@@ -49,7 +48,7 @@ public class ParkingDetailsActivity extends AppCompatActivity {
     Boolean hostConfirm;
     Boolean clientConfirm;
 
-    private String phone;
+    private String phone,street,city,state;
 
     private double hourlyRate, latitude, longitude;
 
@@ -132,9 +131,9 @@ public class ParkingDetailsActivity extends AppCompatActivity {
                 Log.d(TAG, dataSnapshot.toString());
                 String ownerFirstName = dataSnapshot.child("firstname").getValue(String.class);
                 String ownerLastName = dataSnapshot.child("lastname").getValue(String.class);
-                String street = dataSnapshot.child("street").getValue(String.class);
-                String city = dataSnapshot.child("city").getValue(String.class);
-                String state = dataSnapshot.child("state").getValue(String.class);
+                street = dataSnapshot.child("street").getValue(String.class);
+                city = dataSnapshot.child("city").getValue(String.class);
+                state = dataSnapshot.child("state").getValue(String.class);
                 latitude = dataSnapshot.child("latitude").getValue(Double.class);
                 longitude = dataSnapshot.child("longitude").getValue(Double.class);
                 hourlyRate = dataSnapshot.child("rate").getValue(Double.class);
@@ -157,9 +156,10 @@ public class ParkingDetailsActivity extends AppCompatActivity {
                 if (hostConfirm && clientConfirm) {
                     confirmText.setText("You and the lot owner have confirmed this parking location. You are good to go!");
                     confirmText.setTextColor(Color.parseColor("#117A65"));
-                    toggle.setChecked(true);
-                    Intent intent=new Intent();
-                    intent.putExtra("hours",hours);
+                    toggle.setChecked(false);
+                    firebase.child("owners").child(ownerEmail).child("clientConfirm").setValue(false);
+                    firebase.child("owners").child(ownerEmail).child("hostConfirm").setValue(false);
+                    startPayment();
                 } else if (clientConfirm) {
                     confirmText.setText("Warning: Owner has not confirmed this parking spot, do not leave your car");
                     confirmText.setTextColor(Color.RED);
@@ -272,6 +272,8 @@ public class ParkingDetailsActivity extends AppCompatActivity {
                 Log.d("!!!",response.toString());
             }
         });
+    }
+    public void startPayment(){
         String startTime = arrivalStartTimeBtn.getText().toString();
         String endTime = arrivalEndTimeBtn.getText().toString();
         SimpleDateFormat displayFormat = new SimpleDateFormat("HH:mm");
@@ -299,8 +301,16 @@ public class ParkingDetailsActivity extends AppCompatActivity {
             Interval interval = new Interval(dateTime1, dateTime2);
             Duration duration = interval.toDuration();
             hours = duration.getStandardHours();
+            double cost=hours*hourlyRate;
+            Intent intent=new Intent(this,PaymentActivity.class);
+            intent.putExtra("street",street);
+            intent.putExtra("state",state);
+            intent.putExtra("city",city);
+            intent.putExtra("hours",hours);
+            intent.putExtra("cost",cost);
+            startActivity(intent);
         } catch (Exception e) {
-            Toast.makeText(ParkingDetailsActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+            Log.e("!!!",e.getMessage());
         }
     }
 

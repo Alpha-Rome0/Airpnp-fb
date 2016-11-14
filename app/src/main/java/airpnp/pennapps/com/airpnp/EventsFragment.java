@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
 
+import static airpnp.pennapps.com.airpnp.MyApplication.listitems;
 import static android.widget.Toast.makeText;
 
 /**
@@ -37,7 +38,6 @@ import static android.widget.Toast.makeText;
  * to handle interaction events.
  */
 public class EventsFragment extends Fragment {
-    ArrayList<Event> listitems=new ArrayList<>();
     RecyclerView MyRecyclerView;
 
 
@@ -66,6 +66,10 @@ public class EventsFragment extends Fragment {
         LinearLayoutManager MyLayoutManager = new LinearLayoutManager(getActivity());
         MyLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         MyRecyclerView.setLayoutManager(MyLayoutManager);
+        if(!listitems.isEmpty()) {
+            MyRecyclerView.setAdapter(new MyAdapter(listitems));
+            ((EventsActivity) getActivity()).getPleaseWait().dismiss();
+        }
         return view;
     }
 
@@ -88,57 +92,59 @@ public class EventsFragment extends Fragment {
     }
 
     public void getEventList(){
-        EventbriteRestClient.builder
-                .appendPath("events")
-                .appendPath("search");
-        RequestParams params = new RequestParams();
-        params.put("token",getString(R.string.eventbrite_token));
-        LatLng latLng=((EventsActivity)getActivity()).getLatLng();
-        params.put("location.latitude",Double.toString(latLng.latitude));
-        params.put("location.longitude",Double.toString(latLng.longitude));
-        EventbriteRestClient.get(params,new JsonHttpResponseHandler(){
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                try{
-                    JSONArray arr=response.getJSONArray("events");
-                    for(int i=0;i<arr.length();i++){
-                        Event event=new Event();
-                        JSONObject jsonobject = arr.getJSONObject(i);
-                        JSONObject name=jsonobject.getJSONObject("name");
-                        event.name=name.getString("text");
-                        event.description=jsonobject.getString("description");
-                        event.venudID=jsonobject.getString("venue_id");
-                        if(jsonobject.has("logo") && !jsonobject.isNull("logo")){
-                            JSONObject logo = jsonobject.getJSONObject("logo");
-                            event.imageURL = logo.getString("url");
+        if(listitems.size()==0) {
+            EventbriteRestClient.builder
+                    .appendPath("events")
+                    .appendPath("search");
+            RequestParams params = new RequestParams();
+            params.put("token", getString(R.string.eventbrite_token));
+            LatLng latLng = ((EventsActivity) getActivity()).getLatLng();
+            params.put("location.latitude", Double.toString(latLng.latitude));
+            params.put("location.longitude", Double.toString(latLng.longitude));
+            EventbriteRestClient.get(params, new JsonHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                    try {
+                        JSONArray arr = response.getJSONArray("events");
+                        for (int i = 0; i < arr.length(); i++) {
+                            Event event = new Event();
+                            JSONObject jsonobject = arr.getJSONObject(i);
+                            JSONObject name = jsonobject.getJSONObject("name");
+                            event.name = name.getString("text");
+                            event.description = jsonobject.getString("description");
+                            event.venudID = jsonobject.getString("venue_id");
+                            if (jsonobject.has("logo") && !jsonobject.isNull("logo")) {
+                                JSONObject logo = jsonobject.getJSONObject("logo");
+                                event.imageURL = logo.getString("url");
+                            }
+                            listitems.add(event);
                         }
-                        listitems.add(event);
+                        if (listitems.size() > 0 & MyRecyclerView != null) {
+                            MyRecyclerView.setAdapter(new MyAdapter(listitems));
+                        }
+                        ((EventsActivity) getActivity()).getPleaseWait().dismiss();
+                    } catch (Exception e) {
+                        Log.e("!!!", e.toString());
+                        ((EventsActivity) getActivity()).getPleaseWait().dismiss();
                     }
-                    if (listitems.size() > 0 & MyRecyclerView != null) {
-                        MyRecyclerView.setAdapter(new MyAdapter(listitems));
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                    if (errorResponse != null) {
+                        Log.e("!!!", errorResponse.toString());
+                        Toast toast = makeText(getContext(), errorResponse.toString(), Toast.LENGTH_LONG);
+                        toast.show();
+                    } else {
+                        Toast toast = makeText(getContext(), "null error response", Toast.LENGTH_LONG);
+                        toast.show();
                     }
-                    ((EventsActivity)getActivity()).getPleaseWait().dismiss();
-                }catch (Exception e){
-                    Log.e("!!!",e.toString());
-                    ((EventsActivity)getActivity()).getPleaseWait().dismiss();
-                }
-            }
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse){
-                if (errorResponse != null) {
-                    Log.e("!!!", errorResponse.toString());
-                    Toast toast = makeText(getContext(), errorResponse.toString(), Toast.LENGTH_LONG);
-                    toast.show();
-                }
-                else{
-                    Toast toast = makeText(getContext(), "null error response", Toast.LENGTH_LONG);
-                    toast.show();
-                }
-                ((EventsActivity)getActivity()).getPleaseWait().dismiss();
+                    ((EventsActivity) getActivity()).getPleaseWait().dismiss();
 
-            }
+                }
 
-        });
+            });
+        }
     }
 
     public class MyAdapter extends RecyclerView.Adapter<MyViewHolder> {

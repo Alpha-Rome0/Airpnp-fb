@@ -77,9 +77,7 @@ public class EventsActivity extends AppCompatActivity {
             if (m_Location==null)m_Location = m_LocationManager.getLastKnownLocation(bestProvider);
             if (m_Location != null) {
                 latLng = new LatLng(m_Location.getLatitude(), m_Location.getLongitude());
-                if (((EventsFragment) fragment).listitems.isEmpty()){
-                    ((EventsFragment) fragment).getEventList();
-                }
+                ((EventsFragment) fragment).getEventList();
             }
             else{
                 Toast toast = Toast.makeText(EventsActivity.this,"Problem getting GPS",Toast.LENGTH_LONG);
