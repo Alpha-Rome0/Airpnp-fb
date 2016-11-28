@@ -54,7 +54,8 @@
                     android:padding="8dp"
                     android:textSize="22dp"
                     android:textStyle="bold"
-                    android:id="@+id/admin_lock_switch" />
+                    android:id="@+id/ownerSwitch"
+                    android:checked="true"/>
 
                 <android.support.design.widget.TextInputLayout
                     android:layout_width="match_parent"
@@ -64,7 +65,7 @@
                         android:layout_height="wrap_content"
                         android:inputType="textPersonName"
                         android:hint="First Name"
-                        android:id="@+id/editText1"
+                        android:id="@+id/registerFirst"
                         android:textColor="#fff"
                         android:layout_marginTop="15dp" />
                 </android.support.design.widget.TextInputLayout>
@@ -76,7 +77,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textPersonName"
-                        android:id="@+id/editText2"
+                        android:id="@+id/registerLast"
                         android:textColor="#fff"
                         android:hint="Last Name"
                         android:layout_marginTop="15dp" />
@@ -89,7 +90,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="#fff"
-                        android:id="@+id/editText3"
+                        android:id="@+id/registerEmail"
                         android:hint="Email"
                         android:layout_marginTop="15dp" />
                 </android.support.design.widget.TextInputLayout>
@@ -101,7 +102,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="#fff"
-                        android:id="@+id/editText4"
+                        android:id="@+id/registerMobile"
                         android:inputType="phone"
                         android:hint="Mobile"
                         android:layout_marginTop="15dp" />
@@ -115,7 +116,7 @@
                         android:layout_height="wrap_content"
                         android:textColor="#fff"
                         android:inputType="textPassword"
-                        android:id="@+id/editText5"
+                        android:id="@+id/registerPassword"
                         android:hint="Password"
                         android:layout_marginTop="15dp" />
                 </android.support.design.widget.TextInputLayout>
@@ -127,7 +128,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="#fff"
-                        android:id="@+id/editText6"
+                        android:id="@+id/registerPassword2"
                         android:inputType="textPassword"
                         android:hint="Re-enter Password"
                         android:layout_marginTop="15dp" />
@@ -140,7 +141,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="#fff"
-                        android:id="@+id/editText7"
+                        android:id="@+id/registerStreet"
                         android:inputType="text"
                         android:hint="Street Address"
                         android:layout_marginTop="15dp" />
@@ -153,7 +154,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="#fff"
-                        android:id="@+id/editText8"
+                        android:id="@+id/registerCity"
                         android:inputType="textCapWords"
                         android:hint="City"
                         android:layout_marginTop="15dp" />
@@ -166,7 +167,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="#fff"
-                        android:id="@+id/editText9"
+                        android:id="@+id/registerState"
                         android:inputType="textCapWords"
                         android:hint="State"
                         android:layout_marginTop="15dp" />
@@ -179,7 +180,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="#fff"
-                        android:id="@+id/editText10"
+                        android:id="@+id/registerZip"
                         android:inputType="number"
                         android:hint="Zip"
                         android:layout_marginTop="15dp" />
@@ -221,12 +222,11 @@
                     android:layout_height="wrap_content"
                     style="?android:textAppearanceSmall"
                     android:text="Register"
-                    android:id="@+id/button1"
+                    android:id="@+id/registerButton"
+                    android:onClick="register"
                     android:textStyle="bold"
                     android:layout_marginTop="20dp"
-                    android:onClick="button1_onClick"
                     android:layout_marginBottom="192dp"/>
-
             </LinearLayout>
 
         </LinearLayout>

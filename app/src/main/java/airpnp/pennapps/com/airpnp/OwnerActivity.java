@@ -1,9 +1,13 @@
 package airpnp.pennapps.com.airpnp;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ArrayAdapter;
@@ -30,6 +34,7 @@ public class OwnerActivity extends AppCompatActivity {
     String userEmail;
     Boolean hostConfirm;
     Boolean clientConfirm;
+    Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,8 +42,9 @@ public class OwnerActivity extends AppCompatActivity {
         firebase = FirebaseDatabase.getInstance().getReference();
         setContentView(R.layout.activity_owner);
         listview = (ListView) findViewById(R.id.reviews);
+        context=this;
         intent=getIntent();
-        userEmail = intent.getStringExtra("user_email");
+        userEmail = MyApplication.userEmail;
         ownersText = (TextView) findViewById(R.id.owner_text);
         confirmText = (TextView) findViewById(R.id.confirm_text);
         toggleButton = (ToggleButton) findViewById(R.id.toggleButton);
@@ -60,11 +66,23 @@ public class OwnerActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 hostConfirm = dataSnapshot.child(userEmail).child("hostConfirm").getValue(Boolean.class);
-                clientConfirm = dataSnapshot.child(userEmail).child("hostConfirm").getValue(Boolean.class);
+                clientConfirm = dataSnapshot.child(userEmail).child("clientConfirm").getValue(Boolean.class);
                 if (hostConfirm && clientConfirm) {
                     confirmText.setText("You and the driver have confirmed this parking location. You are good to go!");
                     confirmText.setTextColor(Color.GREEN);
                     toggleButton.setChecked(true);
+                    AlertDialog alertDialog = new AlertDialog.Builder(context).create();
+                    alertDialog.setTitle("Transaction Complete");
+                    alertDialog.setMessage("Thank you for using Airpnp!");
+                    alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    if (! ((Activity) context).isFinishing()) {
+                        alertDialog.show();
+                    }
                 }
                 else if(hostConfirm){
                     confirmText.setText("Warning: Driver has not confirmed this parking spot");

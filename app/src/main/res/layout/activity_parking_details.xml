@@ -247,20 +247,20 @@
             <ToggleButton
                 android:id="@+id/toggleButton_parking"
                 android:layout_width="0dp"
-                android:layout_height="50dp"
                 android:layout_weight=".5"
                 android:text="ToggleButton"
                 android:textOff="Unconfirmed"
-                android:textOn="Confirmed" />
+                android:textOn="Confirmed"
+                android:layout_height="50dp" />
 
             <Button
                 android:id="@+id/btn_book"
                 android:layout_width="0dp"
-                android:layout_height="50dp"
                 android:layout_weight=".5"
                 android:background="#FFC107"
                 android:onClick="getDirections"
-                android:text="Get Directions" />
+                android:text="Get Directions"
+                android:layout_height="40dp" />
 
 
         </LinearLayout>

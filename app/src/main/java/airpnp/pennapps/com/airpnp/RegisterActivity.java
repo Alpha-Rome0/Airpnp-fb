@@ -1,5 +1,6 @@
 package airpnp.pennapps.com.airpnp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -7,45 +8,25 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import cz.msebera.android.httpclient.Header;
 
 public class RegisterActivity extends AppCompatActivity {
-
-    private EditText editText1;
-    private EditText editText2;
-    private EditText editText3;
-    private EditText editText4;
-    private EditText editText5;
-    private EditText editText6;
-    private EditText editText7;
-    private EditText editText8;
-    private EditText editText9;
-    private EditText editText10;
-    private EditText editText11;
-
+    DatabaseReference firebase = FirebaseDatabase.getInstance().getReference();
     private String firstName;
     private String lastName;
     private String email;
@@ -55,215 +36,157 @@ public class RegisterActivity extends AppCompatActivity {
     private String city;
     private String state;
     private String zip;
-    private String customerkey;
-    private String lat;
-    private String lng;
+    private double lat;
+    private double lng;
+    private double rate;
 
-    private String ownerRemarks;
-    private String ownerRates;
-    private Switch ownerRegister;
-
+    private Switch ownerSwitch;
+    private EditText registerFirst;
+    private EditText registerLast;
+    private EditText registerEmail;
+    private EditText registerMobile;
+    private EditText registerPassword;
+    private EditText registerPassword2;
+    private EditText registerStreet;
+    private EditText registerCity;
+    private EditText registerState;
+    private EditText registerZip;
     private TextInputLayout textWrapperComments;
+    private EditText ownerRemarks;
     private TextInputLayout textWrapperRates;
+    private EditText hourlyRate;
+    private Button registerButton;
+
+    private void findViews() {
+        ownerSwitch = (Switch) findViewById(R.id.ownerSwitch);
+        registerFirst = (EditText) findViewById(R.id.registerFirst);
+        registerLast = (EditText) findViewById(R.id.registerLast);
+        registerEmail = (EditText) findViewById(R.id.registerEmail);
+        registerMobile = (EditText) findViewById(R.id.registerMobile);
+        registerPassword = (EditText) findViewById(R.id.registerPassword);
+        registerPassword2 = (EditText) findViewById(R.id.registerPassword2);
+        registerStreet = (EditText) findViewById(R.id.registerStreet);
+        registerCity = (EditText) findViewById(R.id.registerCity);
+        registerState = (EditText) findViewById(R.id.registerState);
+        registerZip = (EditText) findViewById(R.id.registerZip);
+        textWrapperComments = (TextInputLayout) findViewById(R.id.text_wrapper_comments);
+        ownerRemarks = (EditText) findViewById(R.id.owner_remarks);
+        textWrapperRates = (TextInputLayout) findViewById(R.id.text_wrapper_rates);
+        hourlyRate = (EditText) findViewById(R.id.hourly_rate);
+        registerButton=(Button)findViewById(R.id.registerButton);
+    }
 
     private JSONObject tempJSONObject;
     private JSONArray tempJSONArray;
+    Context context;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+        context = this;
+        findViews();
 
         final Typeface tf = Typeface.createFromAsset(getAssets(), "fonts/ffs.ttf");
         final TextView tv = (TextView) findViewById(R.id.register_text);
         tv.setTypeface(tf);
 
-        textWrapperComments = (TextInputLayout) findViewById(R.id.text_wrapper_comments);
-        textWrapperRates = (TextInputLayout) findViewById(R.id.text_wrapper_rates);
-
-        ownerRegister = (Switch) findViewById(R.id.admin_lock_switch);
-        ownerRegister.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        textWrapperComments.setVisibility(View.VISIBLE);
+        textWrapperRates.setVisibility(View.VISIBLE);
+        registerButton.setVisibility(View.VISIBLE);
+        
+        ownerSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean bChecked) {
                 if (bChecked) {
                     textWrapperComments.setVisibility(View.VISIBLE);
                     textWrapperRates.setVisibility(View.VISIBLE);
+                    registerButton.setVisibility(View.VISIBLE);
                 } else {
                     textWrapperComments.setVisibility(View.GONE);
                     textWrapperRates.setVisibility(View.GONE);
+                    registerButton.setVisibility(View.GONE);
                 }
             }
         });
     }
 
-    public void button1_onClick(View v) {
-        editText1 = (EditText) findViewById(R.id.editText1);
-        editText2 = (EditText) findViewById(R.id.editText2);
-        editText3 = (EditText) findViewById(R.id.editText3);
-        editText4 = (EditText) findViewById(R.id.editText4);
-        editText5 = (EditText) findViewById(R.id.editText5);
-        editText6 = (EditText) findViewById(R.id.editText7);
-        editText7 = (EditText) findViewById(R.id.editText8);
-        editText8 = (EditText) findViewById(R.id.editText9);
-        editText9 = (EditText) findViewById(R.id.editText10);
-        editText10 = (EditText) findViewById(R.id.owner_remarks);
-        editText11 = (EditText) findViewById(R.id.hourly_rate);
-
-        firstName = editText1.getText().toString().replace(" ", "%20");
-        lastName = editText2.getText().toString().replace(" ", "%20");
-        email = editText3.getText().toString().replace(" ", "%20");
-        phone = editText4.getText().toString().replace(" ", "%20");
-        password = editText5.getText().toString().replace(" ", "%20");
-        streetAddress = editText6.getText().toString().replace(" ", "%20");
-        city = editText7.getText().toString().replace(" ", "%20");
-        state = editText8.getText().toString().replace(" ", "%20");
-        zip = editText9.getText().toString().replace(" ", "%20");
-
-        ownerRemarks = editText10.getText().toString().replace(" ", "%20");
-        ;
-        ownerRates = editText11.getText().toString().replace(" ", "%20");
-        ;
-
-
-        String url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + streetAddress + " " + state + "&sensor=true_or_false";
-        Log.d("!!!", url);
-        AsyncHttpClient client = new AsyncHttpClient();
-        client.get(url, new JsonHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                // Root JSON in response is an dictionary i.e { "data : [ ... ] }
-                // Handle resulting parsed JSON response here
-                Log.d("!!!", response.toString());
-                try {
-                    tempJSONArray = response.getJSONArray("results");
-                    tempJSONObject = tempJSONArray.getJSONObject(0);
-                    lat = tempJSONObject.getJSONObject("geometry").getJSONObject("location").getString("lat");
-                    lng = tempJSONObject.getJSONObject("geometry").getJSONObject("location").getString("lng");
-                    Log.d("!!!", lat);
-                    Log.d("!!!", lng);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                if (ownerRegister.isChecked()) {
-                    registerOwner();
-                    Intent intent = new Intent(RegisterActivity.this, OwnerActivity.class);
-                    startActivity(intent);
-                }
-                registerCapitalOne();
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String res, Throwable t) {
-                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                Log.d("!!!", res);
-            }
-        });
-    }
-
-    public void registerOwner() {
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://li367-204.members.linode.com/registerowner?email=" + email + "&rate=" + ownerRates + "&remarks=" + ownerRemarks + "&latitude=" + lat + "&longitude=" + lng;
-        JsonObjectRequest jsonObjectRequest1 = new JsonObjectRequest(Request.Method.GET, url, (String) null, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                try {
-                    tempJSONArray = response.getJSONArray("result");
-                    tempJSONObject = tempJSONArray.getJSONObject(0);
-                } catch (JSONException e) {
-                    Toast.makeText(RegisterActivity.this, e.toString(), Toast.LENGTH_LONG).show();
-                }
-            }
-        },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(RegisterActivity.this, error.toString(), Toast.LENGTH_LONG).show();
+    public void register(View v) {
+        boolean notDouble=true;
+        try
+        {
+            rate=Double.parseDouble(hourlyRate.getText().toString());
+            notDouble=false;
+        }
+        catch(NumberFormatException e)
+        {
+            Log.e("!!!",e.getMessage());
+        }
+        if (registerFirst.getText().equals(""))
+            Toast.makeText(context, "Please enter first name", Toast.LENGTH_LONG).show();
+        else if (registerLast.getText().equals(""))
+            Toast.makeText(context, "Please enter last name", Toast.LENGTH_LONG).show();
+        else if (registerEmail.getText().equals(""))
+            Toast.makeText(context, "Please enter email", Toast.LENGTH_LONG).show();
+        else if (registerMobile.getText().equals(""))
+            Toast.makeText(context, "Please enter mobile", Toast.LENGTH_LONG).show();
+        else if (registerStreet.getText().equals(""))
+            Toast.makeText(context, "Please enter street", Toast.LENGTH_LONG).show();
+        else if (registerState.getText().equals(""))
+            Toast.makeText(context, "Please enter state", Toast.LENGTH_LONG).show();
+        else if (ownerRemarks.getText().equals(""))
+            Toast.makeText(context, "Please enter remarks", Toast.LENGTH_LONG).show();
+        else if(notDouble){
+            Toast.makeText(context, "Please enter a valid rate", Toast.LENGTH_LONG).show();
+        }
+        else {
+            streetAddress=registerStreet.getText().toString();
+            state=registerState.getText().toString();
+            String url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + streetAddress + " " + state + "&sensor=true_or_false";
+            Log.d("!!!", url);
+            AsyncHttpClient client = new AsyncHttpClient();
+            client.get(url, new JsonHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                    // Root JSON in response is an dictionary i.e { "data : [ ... ] }
+                    // Handle resulting parsed JSON response here
+                    Log.d("!!!", response.toString());
+                    try {
+                        tempJSONArray = response.getJSONArray("results");
+                        tempJSONObject = tempJSONArray.getJSONObject(0);
+                        String s_lat = tempJSONObject.getJSONObject("geometry").getJSONObject("location").getString("lat");
+                        String s_long = tempJSONObject.getJSONObject("geometry").getJSONObject("location").getString("lng");
+                        double lat=Double.parseDouble(s_lat);
+                        double lng=Double.parseDouble(s_long);
+                        firstName=registerFirst.getText().toString();
+                        firebase.child("owners").child(firstName).child("city").setValue(registerCity.getText().toString());
+                        firebase.child("owners").child(firstName).child("clientConfirm").setValue(false);
+                        firebase.child("owners").child(firstName).child("email").setValue(registerEmail.getText().toString());
+                        firebase.child("owners").child(firstName).child("firstname").setValue(firstName);
+                        firebase.child("owners").child(firstName).child("hostConfirm").setValue(false);
+                        firebase.child("owners").child(firstName).child("lastname").setValue(registerLast.getText().toString());
+                        firebase.child("owners").child(firstName).child("latitude").setValue(lat);
+                        firebase.child("owners").child(firstName).child("longitude").setValue(lng);
+                        firebase.child("owners").child(firstName).child("phone").setValue(registerMobile.getText().toString());
+                        firebase.child("owners").child(firstName).child("rate").setValue(rate);
+                        firebase.child("owners").child(firstName).child("state").setValue(registerState.getText().toString());
+                        firebase.child("owners").child(firstName).child("street").setValue(registerStreet.getText().toString());
+                        MyApplication.userEmail=firstName;
+                        Intent intent=new Intent(RegisterActivity.this,OwnerActivity.class);
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                });
-        queue.add(jsonObjectRequest1);
-
-    }
-
-    public void registerUser(String firstName, String lastName, String email, String phone, String password, String streetAddress, String city, String state, String zip) {
-        registerCapitalOne();
-    }
-
-    public void registerCapitalOne() {
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://api.reimaginebanking.com/customers?key=1f925e3612560ecb9d6fca3348f05ae8";
-        Map<String, Object> jsonParams1 = new HashMap<String, Object>();
-
-        jsonParams1.put("first_name", firstName);
-        jsonParams1.put("last_name", lastName);
-
-        Map<String, String> jsonParams2 = new HashMap<String, String>();
-        jsonParams2.put("street_number", streetAddress.split(" ")[0]);
-        jsonParams2.put("street_name", streetAddress.replace("^\\s*[0-9]+\\s+", ""));
-        jsonParams2.put("city", city);
-        jsonParams2.put("state", state);
-        jsonParams2.put("zip", zip);
-
-        jsonParams1.put("address", jsonParams2);
-
-        JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url,
-
-                new JSONObject(jsonParams1),
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            customerkey = response.getJSONObject("objectCreated").getString("_id");
-                            Log.d("CAP", response.toString());
-
-                            RequestQueue queue1 = Volley.newRequestQueue(RegisterActivity.this);
-                            String url1 = "http://li367-204.members.linode.com/register?firstname=" + firstName + "&lastname=" + lastName + "&email=" + email + "&phone=" + phone + "&password=" + password + "&street=" + streetAddress + "&city=" + city + "&state=" + state + "&zip=" + zip + "&customerkey=" + customerkey;
-                            JsonObjectRequest jsonObjectRequest1 = new JsonObjectRequest(Request.Method.GET, url1, (String) null, new Response.Listener<JSONObject>() {
-                                @Override
-                                public void onResponse(JSONObject response) {
-                                    try {
-                                        JSONArray jsonArray = response.getJSONArray("result");
-                                        JSONObject jsonObject = jsonArray.getJSONObject(0);
-                                        String status = jsonObject.getString("status");
-                                        if (status.equals("1")) {
-                                            Toast.makeText(RegisterActivity.this, "Successfully registered", Toast.LENGTH_SHORT).show();
-                                            Intent intent = new Intent(RegisterActivity.this, MapsActivity.class);
-                                            startActivity(intent);
-                                        }
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                        Toast.makeText(RegisterActivity.this, e.toString(), Toast.LENGTH_LONG).show();
-                                    }
-                                }
-                            },
-                                    new Response.ErrorListener() {
-                                        @Override
-                                        public void onErrorResponse(VolleyError error) {
-                                            Toast.makeText(RegisterActivity.this, error.toString(), Toast.LENGTH_LONG).show();
-                                        }
-                                    });
-                            queue1.add(jsonObjectRequest1);
-
-                        } catch (Exception e) {
-                            Toast.makeText(RegisterActivity.this, e.toString(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        //   Handle Error
-                        Toast.makeText(RegisterActivity.this, error.toString(), Toast.LENGTH_LONG).show();
-                    }
-                }) {
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                HashMap<String, String> headers = new HashMap<String, String>();
-                headers.put("Content-Type", "application/json; charset=utf-8");
-                headers.put("User-agent", System.getProperty("http.agent"));
-                return headers;
-            }
-        };
-        queue.add(postRequest);
+                }
+                @Override
+                public void onFailure(int statusCode, Header[] headers, String res, Throwable t) {
+                    // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+                    Toast toast = Toast.makeText(context, res, Toast.LENGTH_LONG);
+                    toast.show();
+                    Log.d("!!!", res);
+                }
+            });
+        }
     }
 }
