@@ -54,17 +54,8 @@ public class EventsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_events);
-
+        
         FragmentManager fm = getSupportFragmentManager();
-        fragment = new EventsFragment();
-        fm.beginTransaction()
-                .add(R.id.fragmentContainer, fragment)
-                .commit();
-
-        String value="";
-        if (savedInstanceState != null) {
-            value = savedInstanceState.getString("user_email");
-        }
         mDatabase = FirebaseDatabase.getInstance().getReference();
         ValueEventListener postListener = new ValueEventListener(){
             @Override
