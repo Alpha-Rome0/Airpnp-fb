@@ -69,21 +69,38 @@ public class EventsActivity extends AppCompatActivity {
     }
 
     public void getLocation() {
+        System.out.println("#####"+ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)+"#####");
+        System.out.println("#####"+PackageManager.PERMISSION_GRANTED+"#####");
+        System.out.println("#####"+ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)+"#####");
+        System.out.println("#####"+PackageManager.PERMISSION_GRANTED+"#####");
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            //System.out.println("#####"+"1"+"#####");
             m_LocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            System.out.println("#####"+m_LocationManager+"#####");
             Criteria criteria = new Criteria();
+            //System.out.println("#####"+"3"+"#####");
             String bestProvider = m_LocationManager.getBestProvider(criteria, true);
-            if (m_Location==null)m_Location = m_LocationManager.getLastKnownLocation(bestProvider);
-            if (m_Location != null) {
-                latLng = new LatLng(m_Location.getLatitude(), m_Location.getLongitude());
-                ((EventsFragment) fragment).getEventList();
-            }
-            else{
-                Toast toast = Toast.makeText(EventsActivity.this,"Problem getting GPS",Toast.LENGTH_LONG);
-                toast.show();
+
+
+            System.out.println("#####"+bestProvider+"#####");
+            if (m_Location==null) {
+                m_Location = m_LocationManager.getLastKnownLocation(bestProvider);
+                System.out.println("#####" + m_Location + "#####");
             }
 
+
+            //if (m_Location != null) {
+                System.out.println("#####"+"6"+"#####");
+                latLng = new LatLng(33.762909, -84.422675);
+                System.out.println("#####"+"7"+"#####");
+                ((EventsFragment) fragment).getEventList();
+             //   System.out.println("#####"+"8"+"#####");
+            //}
+            //else{
+             //   Toast toast = Toast.makeText(EventsActivity.this,"Problem getting GPS",Toast.LENGTH_LONG);
+            //    toast.show();
+            //}
         }
     }
 

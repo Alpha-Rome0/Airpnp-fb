@@ -118,8 +118,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         cl = (CoordinatorLayout) findViewById(R.id.cl);
-        final Snackbar snackbar = Snackbar.make(cl, "Use PIN to find parking spots nearby", Snackbar.LENGTH_LONG);
-        snackbar.show();
+
 
 
         mapFragment.getMapAsync(this);
